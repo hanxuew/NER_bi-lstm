@@ -1,8 +1,11 @@
 # -*- coding:utf-8 -*-
 import time
+
 import tensorflow as tf
 from tensorflow.contrib.crf import crf_log_likelihood, viterbi_decode
+
 from utils import next_batch, pad_seqs, get_tmp_file_name, write_result, compute_prf_score
+
 
 class Config(object):
     def __init__(self, word2id, pos2id, label2id, batch_size, n_epochs, n_neurons, is_training=True):
@@ -62,7 +65,7 @@ class BiLSTM_CRF(object):
         self.graph = tf.Graph()
         # self.project = projector.ProjectorConfig()
 
-        self.save_flag = True #False
+        self.save_flag = False
 
     def build_graph(self):
         with self.graph.as_default():
@@ -79,7 +82,7 @@ class BiLSTM_CRF(object):
     def _gpu_set_config(self):
         self.gpu_config = tf.ConfigProto()
         self.gpu_config.gpu_options.allow_growth = True
-        self.gpu_config.gpu_options.per_process_gpu_memory_fraction = 0.9
+        self.gpu_config.gpu_options.per_process_gpu_memory_fraction = 0.4
 
     def _add_placeholder(self):
         with tf.name_scope('placeholder'):
@@ -222,8 +225,7 @@ class BiLSTM_CRF(object):
         return feed_dict, batch_words_len
 
     def _run_one_epoch(self, sess, train_data, valid_data, epoch, saver):
-        save_flag = True
-		# False
+        save_flag = False
         start_time = time.time()
         data_len = len(train_data)
         num_batches = (data_len + self.batch_size - 1) // self.batch_size
@@ -276,7 +278,7 @@ class BiLSTM_CRF(object):
             for epoch in range(self.n_epochs):
                 self._run_one_epoch(sess, train_data, valid_data, epoch, self.saver)
             print('best avg f1={}, at epoch={}'.format(self.best_f1, self.best_epoch))
-        pass
+        # pass
 
     def test(self, data):
         with tf.Session(graph=self.graph) as sess:
@@ -287,7 +289,7 @@ class BiLSTM_CRF(object):
             tmp_file_path = get_tmp_file_name('output')
             write_result(data, predict_label_list, self.id2label, tmp_file_path)
             avg_f1 = compute_prf_score(tmp_file_path)
-            print('avg_f1', avg_f1)
+            print(avg_f1)
             print('predict done!!!')
 
         pass

@@ -328,9 +328,7 @@ def compute_prf_score(file_path):
     names_map = dict(ner_cfg.ner_tags)
     names_map['o'] = '其他'
     true_data, predict_data = read_predict_result_from_file(file_path)
-
     confusion_matrix, label2id = compute_confusion_matrix(true_data, predict_data, names_map)
-
     print_confusion_matrix(confusion_matrix, names_map, label2id)
     true_dict = count_labels_frequency(true_data)
     predict_dict = count_labels_frequency(predict_data)
@@ -400,15 +398,15 @@ def count_true_positive(true_data, predict_data):
             i += 1
             continue
         else:
-            if true_data[i].lower() == 'o':
+            if true_data[i] == 'o':
                 true_positive_dict[true_data[i]] += 1
                 i += 1
-            elif str(true_data[i]).lower().startswith('s_'):
+            elif str(true_data[i]).startswith('s_'):
                 label = get_label_from_ann(true_data[i])
                 true_positive_dict[label] += 1
                 i += 1
             # 确保将整个实体遍历完，即遍历到e_*
-            elif str(true_data[i]).lower().startswith('b_'):
+            elif str(true_data[i]).startswith('b_'):
                 label = get_label_from_ann(true_data[i])
                 entity_equal_flag = True
                 j = i + 1
@@ -417,7 +415,7 @@ def count_true_positive(true_data, predict_data):
                         if entity_equal_flag:
                             entity_equal_flag = False
 
-                    if str(true_data[j]).lower().startswith('e_'):
+                    if str(true_data[j]).startswith('e_'):
                         j += 1
                         break
                     j += 1
@@ -460,7 +458,6 @@ def compute_confusion_matrix(true_data, predict_data, ner_labels):
     labels = tag_map.keys()
     labels_len = len(labels)
     label2id = {label: indx for indx, label in enumerate(labels)}
-
     confusion_matrix = np.zeros(shape=[labels_len, labels_len], dtype=np.int32)
     # confusion_matrix = pd.DataFrame(np.zeros(shape=[labels_len, labels_len], dtype=np.int32), columns=labels,
     #                                 index=labels)
@@ -498,6 +495,7 @@ def compute_confusion_matrix(true_data, predict_data, ner_labels):
                     tmp_true_entity = []
                     tmp_predict_entity = []
                     break
+
             if tmp_true_entity and tmp_predict_entity:
                 tmp_true_tag = get_label_from_ann(tmp_true_entity[0])
                 tmp_predict_tag = get_label_from_ann(tmp_predict_entity[0])
@@ -515,8 +513,8 @@ def compute_confusion_matrix(true_data, predict_data, ner_labels):
         else:
             tmp_true_tag = get_label_from_ann(tmp_true_item)
             tmp_predict_tag = get_label_from_ann(tmp_predict_item)
-            # 将标签转为小写 add by han
-            confusion_matrix[label2id.get(tmp_true_tag.lower())][label2id.get(tmp_predict_tag.lower())] += 1
+
+            confusion_matrix[label2id.get(tmp_true_tag)][label2id.get(tmp_predict_tag)] += 1
             i += 1
     return confusion_matrix, label2id
 
@@ -543,7 +541,7 @@ def process_tags(data):
     """
     processed_data = []
     for item in data:
-        item = str(item).lower()
+        item = str(item)
         if item.startswith('i_') or item.startswith('e_'):
             continue
         elif item.startswith('b_') or item.startswith('s_'):
@@ -569,20 +567,16 @@ class NerCfgData:
         count = 0
         label2id['o'] = count
         for label in self.ner_tags:
-
-            # t_b_l = 'b_{}'.format(label)
-            # t_i_l = 'i_{}'.format(label)
-            # t_e_l = 'e_{}'.format(label)
-            # t_s_l = 's_{}'.format(label)
-            t_b_l = 'B_{}'.format(label.upper())
-            t_i_l = 'I_{}'.format(label.upper())
-            t_e_l = 'E_{}'.format(label.upper())
-            t_s_l = 'S_{}'.format(label.upper())
+            t_b_l = 'b_{}'.format(label)
+            t_i_l = 'i_{}'.format(label)
+            t_e_l = 'e_{}'.format(label)
+            t_s_l = 's_{}'.format(label)
             label2id[t_b_l] = count + 1
             label2id[t_i_l] = count + 2
             label2id[t_e_l] = count + 3
             label2id[t_s_l] = count + 4
             count += 4
+
         return label2id
 
 
@@ -630,11 +624,11 @@ if __name__ == '__main__':
     import time
 
     t0 = time.time()
-    # f = compute_prf_score('output2.txt')
-    # print('old cost time is {}'.format(time.time() - t0))
-    # print(f)
-    # print('==================')
+    f = compute_prf_score('output2.txt')
+    print('old cost time is {}'.format(time.time() - t0))
+    print(f)
+    print('==================')
     t1 = time.time()
-    f1 = compute_prf_score('./output/output.txt')
+    f1 = compute_prf_score('tmp.txt')
     print('new cost time is {}'.format(time.time() - t1))
     print(f1)

@@ -2,7 +2,6 @@
 import os
 import pickle
 import numpy as np
-from utils import NerCfgData
 
 # label2id = {'o': 0,
 #             'b_srs': 1,
@@ -54,8 +53,7 @@ from utils import NerCfgData
 #             's_saw': 47,
 #             's_sc': 48
 #             }
-ner_cfg = NerCfgData()
-label2id = ner_cfg.generate_tag_to_label()
+label2id = {}
 
 def read_dictionary(vocab_path):
     vocab_path = os.path.join(vocab_path)
